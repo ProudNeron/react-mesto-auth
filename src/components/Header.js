@@ -7,7 +7,7 @@ function Header({ logOut, user}) {
     <header className="header">
       <a aria-label={'Лого'} href="src/components/App#" className="header__logo"></a>
       <Routes>
-        <Route path='/main' element={<NavBar user={user} logOut={logOut}/>}/>
+        <Route path='/' element={<NavBar user={user} logOut={logOut}/>}/>
         <Route path='/signup' element={<Link to='/signin' className="header__link">Войти</Link>}/>
         <Route path='/signin' element={<Link to='/signup' className="header__link">Регистрация</Link>}/>
       </Routes>

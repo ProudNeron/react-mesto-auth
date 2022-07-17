@@ -15,11 +15,12 @@ import InfoToolTip from "./InfoToolTip";
 import Register from "./Register";
 import ProtectedRoute from "./ProtectedRoute";
 import {getContent, register, signin} from "../utils/AuthApi";
+import {okInfo, notOkInfo} from "../utils/consts";
 
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
-  const [userAuth , setUserAuth] = useState({email: '', _id: ''});
+  const [userAuth, setUserAuth] = useState({email: '', _id: ''});
 
   const [isEditProfilePopupOpen, setEditProfilePopupOpenState] = useState(false);
   const [isAddPlacePopupOpen, setAddPlacePopupState] = useState(false);
@@ -38,23 +39,23 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (localStorage.getItem('token')) {
+    if (loggedIn) {
       const userProfileData = api.getProfileData();
 
       userProfileData.then((profileData) => {
         setCurrentUser(profileData);
       }).catch(err => alert(err));
     }
-  }, []);
+  }, [loggedIn]);
 
   useEffect(() => {
-    if (localStorage.getItem('token')) {
+    if (loggedIn) {
       api.getAllCards().then((dataCards) => {
         dataCards.sort((j, k) => Date.parse(k.createdAt) - Date.parse(j.createdAt));
         setCardsState(dataCards);
       }).catch(err => alert(err));
     }
-  }, []);
+  }, [loggedIn]);
 
   function handleEditAvatarClick() {
     setEditAvatarPopupState(true);
@@ -92,15 +93,15 @@ function App() {
   }
 
   function handleUpdateAvatar(link) {
-     api.patchProfileAvatar(link).then((data) => {
+    api.patchProfileAvatar(link).then((data) => {
       setCurrentUser(data);
     }).catch(err => alert(err));
   }
 
   function handleAddPlaceSubmit({name, link}) {
-    api.postCard({name, link}).then( (newCard) => {
+    api.postCard({name, link}).then((newCard) => {
       setCardsState((prevState) => [newCard, ...prevState]);
-      }).catch(err => alert(err));
+    }).catch(err => alert(err));
   }
 
   function handleCardLike(card) {
@@ -126,6 +127,7 @@ function App() {
   function handleRegister({email, password}) {
     return register({email, password}).then((res) => {
       setUserAuth(res.data);
+      navigate('/');
       setSuccessRegister(true);
       setInfoPopupOpen(true);
     }).catch(() => {
@@ -138,6 +140,11 @@ function App() {
     return signin({email, password}).then((res) => {
       setLoggedIn(true);
       localStorage.setItem('token', res["token"]);
+      setUserAuth({email: email});
+      navigate('/');
+    }).catch(() => {
+      setSuccessRegister(false);
+      setInfoPopupOpen(true);
     });
   }
 
@@ -147,7 +154,7 @@ function App() {
       getContent(token).then((res) => {
         setUserAuth(res.data);
         setLoggedIn(true);
-        navigate('/main');
+        navigate('/');
       }).catch(err => alert(err));
     }
   }
@@ -159,20 +166,19 @@ function App() {
     navigate('/signin');
   }
 
-
   return (
     <CurrentUserContext.Provider value={currentUser}>
       <div className="page">
         <Header logOut={logOut} user={userAuth}/>
         <Routes>
-          <Route path="/main" element={<ProtectedRoute loggedIn={loggedIn}>
+          <Route path="/" element={<ProtectedRoute loggedIn={loggedIn}>
             <Main cards={cards} onEditProfile={handleEditProfileClick}
                   onCardLike={handleCardLike} onDeleteBtn={handleDeleteBtnClick}
                   onAddPlace={handleAddPlaceClick}
-                  onEditAvatar={handleEditAvatarClick} onCardClick={handleCardClick}/></ProtectedRoute>} />
+                  onEditAvatar={handleEditAvatarClick} onCardClick={handleCardClick}/></ProtectedRoute>}/>
           <Route path="/signin" element={<Login handleAuthorization={handleAuthorization}/>}/>
           <Route path="/signup" element={<Register handleRegister={handleRegister}/>}/>
-          <Route path="*" element={loggedIn ? <Navigate to='/main' /> : <Navigate to='/signin' />}/>
+          <Route path="*" element={loggedIn ? <Navigate to='/'/> : <Navigate to='/signin'/>}/>
         </Routes>
         <Footer/>
       </div>
@@ -181,21 +187,10 @@ function App() {
       <EditAvatarPopup onUpdateAvatar={handleUpdateAvatar} isOpen={isEditAvatarPopupOpen} onClose={closeAllPopups}/>
       <AddPlacePopup onAddPlace={handleAddPlaceSubmit} isOpen={isAddPlacePopupOpen} onClose={closeAllPopups}/>
       <SubmitPopup onCardDelete={handleCardDelete} isOpen={deletingCardId} onClose={closeAllPopups}/>
-      <InfoToolTip isOk={isSuccessRegister} isOpen={isInfoPopupOpen} onClose={closeAllPopups}></InfoToolTip>
+      <InfoToolTip isOk={isSuccessRegister} isOpen={isInfoPopupOpen} onClose={closeAllPopups}
+                   textInfo={ isSuccessRegister ? okInfo : notOkInfo}/>
     </CurrentUserContext.Provider>
   );
 }
 
 export default App;
-
-/*
-<Routes>
-<Route path='/sign-in' element={<Login/>}/>
-<Route path='/sign-up' element={<Register/>}/>
- <Route exact path='/' element={<ProtectedRoute>
-<Main cards={cards} onEditProfile={handleEditProfileClick} onCardLike={handleCardLike}
-onDeleteBtn={handleDeleteBtnClick} onAddPlace={handleAddPlaceClick}
-onEditAvatar={handleEditAvatarClick} onCardClick={handleCardClick}/>
-</ProtectedRoute>}/>
- </Routes>
- */

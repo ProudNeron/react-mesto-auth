@@ -1,12 +1,10 @@
 import AuthForm from "./AuthForm";
-import {Link, useNavigate} from "react-router-dom";
+import {Link} from "react-router-dom";
 import {useState} from "react";
 
 function Register({handleRegister}) {
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
-
-  const navigate = useNavigate();
 
   function handleEmailChange(e) {
     setEmail(e.target.value);
@@ -18,11 +16,10 @@ function Register({handleRegister}) {
   function signup(e) {
     e.preventDefault();
 
-    handleRegister({email, password}).then(() => {
-      setEmail('');
-      setPassword('');
-      navigate('/signin');
-    }).catch(err => alert(err));
+    handleRegister({email, password});
+
+    setEmail('');
+    setPassword('');
   }
 
   return (

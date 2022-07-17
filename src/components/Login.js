@@ -1,12 +1,9 @@
 import AuthForm from "./AuthForm";
 import {useState} from "react";
-import {useNavigate} from "react-router-dom";
 
 function Login({handleAuthorization}) {
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
-
-  const navigate = useNavigate();
 
   function handleEmailChange(e) {
     setEmail(e.target.value);
@@ -18,11 +15,10 @@ function Login({handleAuthorization}) {
   function handleSignin(e) {
     e.preventDefault();
 
-    handleAuthorization({email, password}).then((res) => {
-      setEmail('');
-      setPassword('');
-      navigate('/main');
-    }).catch(err => alert(err));
+    handleAuthorization({email, password});
+
+    setEmail('');
+    setPassword('');
   }
 
   return (
